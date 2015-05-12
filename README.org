@@ -12,3 +12,12 @@ telnet 127.0.0.1 8000
 bar
 
 #+END_SRC
+
+* JSON
+#+BEGIN_SRC sh
+cd JSON
+erl
+c(mochijson).
+c(demo_json).
+demo_json:run().
+#+END_SRC
