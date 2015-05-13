@@ -23,9 +23,9 @@ c(demo_json).
 demo_json:run().
 #+END_SRC
 
-** BNR courses web services
+* BNR courses web services (for iPhone Application)
 #+BEGIN_SRC sh
-cd ~/Erlang/JSON
+cd ~/Erlang/BNRCourses
 erl
 c(bnr_web_courses_server).
 c(mochijson).
