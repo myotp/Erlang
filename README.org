@@ -30,5 +30,5 @@ erl
 c(bnr_web_courses_server).
 c(mochijson).
 mochijson:decode(bnr_web_courses_server:raw_bnr_json_data()).
-bnr_web_courses_server:start(8080).
+spawn(fun() -> bnr_web_courses_server:start(8080) end).
 #+END_SRC

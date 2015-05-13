@@ -43,6 +43,10 @@ loop_json_server(Socket, Json) ->
     receive
         {tcp, Socket, Bin} ->
             io:format("~p got message through ~p~n~s~n", [self(), Socket, Bin]),
+            RandomSleepTime = random:uniform(3000),
+            io:format("To make it interesting, I will sleep ~p~n",
+                      [RandomSleepTime]),
+            timer:sleep(RandomSleepTime),
             JsonReply = mochijson:encode(Json),
             Size = iolist_size(JsonReply),
             Reply = [http_response_header(Size), JsonReply],
