@@ -23,8 +23,10 @@ c(demo_json).
 demo_json:run().
 #+END_SRC
 
-** BNR courses
+** BNR courses web services
 #+BEGIN_SRC sh
+cd ~/Erlang/JSON
+erl
 c(bnr_web_courses_server).
 c(mochijson).
 mochijson:decode(bnr_web_courses_server:raw_bnr_json_data()).
