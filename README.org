@@ -14,10 +14,19 @@ bar
 #+END_SRC
 
 * JSON
+** mochijson
 #+BEGIN_SRC sh
 cd JSON
 erl
 c(mochijson).
 c(demo_json).
 demo_json:run().
+#+END_SRC
+
+** BNR courses
+#+BEGIN_SRC sh
+c(bnr_web_courses_server).
+c(mochijson).
+mochijson:decode(bnr_web_courses_server:raw_bnr_json_data()).
+bnr_web_courses_server:start(8080).
 #+END_SRC
