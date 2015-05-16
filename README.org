@@ -42,7 +42,7 @@ erlc ranch_transport.erl
 erlc ranch_protocol.erl
 erlc -pa . *.erl
 
-erl
+erl -sname jia@localhost
 application:start(ranch).
 application:start(tcp_echo).
 
