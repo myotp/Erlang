@@ -32,3 +32,21 @@ c(mochijson).
 mochijson:decode(bnr_web_courses_server:raw_bnr_json_data()).
 spawn(fun() -> bnr_web_courses_server:start(8080) end).
 #+END_SRC
+
+* Ranch
+#+BEGIN_SRC sh
+cd ~/Erlang/Ranch
+cp ${Ranch}/ranch-1.0.0/src/*.erl .
+cp ${Ranch}/ranch-1.0.0/examples/tcp_echo/src/*.erl .
+erlc ranch_transport.erl
+erlc ranch_protocol.erl
+erlc -pa . *.erl
+
+erl
+application:start(ranch).
+application:start(tcp_echo).
+
+telnet localhost 5555
+some message
+Hello, Erlang.
+#+END_SRC
