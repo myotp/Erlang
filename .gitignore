@@ -9,3 +9,4 @@ rel/example_project
 .rebar
 *~
 .DS_Store
+*.dat
