@@ -213,6 +213,7 @@ solve_refined(M) ->
 	    maybe_par_solve_one(guesses(M))
     end.
 
+%%%================ parallel guess solution ======================
 maybe_par_solve_one(Ms) ->
     case ?pmap_controller:get_depth() of
         N when N < ?MAX_PMAP_DEPTH ->
