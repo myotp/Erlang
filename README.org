@@ -87,3 +87,100 @@ curl -i http://localhost:8080
 curl -i -H "Accept: application/json" http://localhost:8080
 curl -i -H "Accept: text/plain" http://localhost:8080
 #+END_SRC
+* Sudoku
+** simple run
+#+BEGIN_SRC sh
+erl
+c(sudoku).
+sudoku:benchmarks().
+sudoku:par_benchmarks().
+#+END_SRC
+
+** more details
+Understand internals
+#+BEGIN_SRC sh
+f(X), X = [ [1] ].
+sudoku:fill(X).
+
+f(X), X = [ [0] ].
+sudoku:fill(X).
+
+{ok,Puzzles} = file:consult("problems.txt").
+
+## Easy problem can be solved by refine/1
+Wildcat = proplists:get_value(wildcat, Puzzles).
+sudoku:refine(sudoku:fill(Wildcat)).
+
+## Hard one can't be solved by only refine/1
+Diabolical = proplists:get_value(diabolical, Puzzles).
+sudoku:refine(sudoku:fill(Diabolical)).
+
+#+END_SRC
+
+** Parallel implementation
+Parallel Sudoku
+#+BEGIN_SRC sh
+erl
+c(par_sudoku).
+c(pmap_controller).
+par_sudoku:benchmarks().
+percept:profile("par_sudoku.dat", {par_sudoku, benchmarks, []}, [procs]).
+percept:analyze("par_sudoku.dat").
+
+#+END_SRC
+
+** pmap_controller
+pmap_controller for granularity
+#+BEGIN_SRC sh
+c(pmap_controller).
+pmap_controller:start().
+pmap_controller:get_depth().
+pmap_controller:increase_depth().
+pmap_controller:get_depth().
+pmap_controller:decrease_depth().
+pmap_controller:get_depth().
+
+pmap_controller:increase_depth().
+pmap_controller:reset_depth().
+pmap_controller:get_depth().
+pmap_controller:stop().
+#+END_SRC
+
+** pmap_controller2
+#+BEGIN_SRC sh
+c(pmap_controller2).
+pmap_controller2:start().
+pmap_controller2:get_depth().
+
+## +1
+pmap_controller2:increase_depth().
+pmap_controller2:get_depth().
+
+## -1
+pmap_controller2:increase_depth().
+pmap_controller2:get_depth().
+pmap_controller2:decrease_depth().
+pmap_controller2:get_depth().
+
+## reset
+pmap_controller2:reset_depth().
+pmap_controller2:get_depth().
+
+## stop
+pmap_controller2:stop().
+#+END_SRC
+
+* percept
+#+BEGIN_SRC sh
+## Use Sudoku as an example
+l(percept).
+
+## Run benchmark job and generate dat file
+percept:profile("sudoku_run.dat", {sudoku, par_benchmarks, []}, [procs]).
+
+## Analyse dat file
+percept:analyze("sudoku_run.dat").
+
+## Start web server
+percept:start_webserver(8080).
+#+END_SRC

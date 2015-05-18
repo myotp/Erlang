@@ -222,7 +222,7 @@ solve_one([M|Ms]) ->
 
 %% benchmarks
 
--define(EXECUTIONS,1).
+-define(EXECUTIONS,10).
 
 bm(F) ->
     {T,_} = timer:tc(?MODULE,repeat,[F]),
@@ -237,7 +237,32 @@ benchmarks(Puzzles) ->
 benchmarks() ->
   {ok,Puzzles} = file:consult("problems.txt"),
   timer:tc(?MODULE,benchmarks,[Puzzles]).
-		      
+
+%%%==================== parallel benchmarks ======================
+par_benchmarks() ->
+  {ok, Puzzles} = file:consult("problems.txt"),
+  timer:tc(?MODULE, par_benchmarks, [Puzzles]).
+
+par_benchmarks(Puzzles) ->
+    SolveF = fun({Name, M}) -> {Name, bm(fun() -> solve(M) end)} end,
+    pmap(SolveF, Puzzles).
+
+pmap(Fun, List) ->
+    Parent = self(),
+    Pids = [spawn_job(Parent, Fun, Job) || Job <- List],
+    [receive {Pid, Result} -> Result end || Pid <- Pids].
+
+spawn_job(Parent, Fun, {Name, _Arg}=Job) ->
+    spawn(fun() -> %% make name visible in percept result
+                   UniqueName = unique_name(Name),
+                   register(UniqueName, self()),
+                   Result = Fun(Job),
+                   Parent ! {self(), Result} end).
+
+%% TODO, handle repeat names
+unique_name(Name) ->
+    Name.
+
 %% check solutions for validity
 
 valid_rows(M) ->

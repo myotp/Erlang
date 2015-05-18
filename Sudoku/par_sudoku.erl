@@ -1,6 +1,8 @@
 -module(par_sudoku).
 %-include_lib("eqc/include/eqc.hrl").
 -compile(export_all).
+-define(MAX_PMAP_DEPTH, 2).
+-define(pmap_controller, pmap_controller).
 
 %% %% generators
 
@@ -169,6 +171,8 @@ guess(M) ->
 guesses(M) ->
     {I,J,Guesses} = guess(M),
     Ms = [catch refine(update_element(M,I,J,G)) || G <- Guesses],
+    %% CatchRefineF = fun(G) -> catch refine(update_element(M,I,J,G)) end,
+    %% Ms = pmap(CatchRefineF, Guesses),
     SortedGuesses =
 	lists:sort(
 	  [{hard(NewM),NewM}
@@ -192,6 +196,7 @@ update_nth(I,X,Xs) ->
 %% solve a puzzle
 
 solve(M) ->
+    ?pmap_controller:reset_depth(),
     Solution = solve_refined(refine(fill(M))),
     case valid_solution(Solution) of
 	true ->
@@ -205,7 +210,32 @@ solve_refined(M) ->
 	true ->
 	    M;
 	false ->
-	    solve_one(guesses(M))
+	    maybe_par_solve_one(guesses(M))
+    end.
+
+maybe_par_solve_one(Ms) ->
+    case ?pmap_controller:get_depth() of
+        N when N < ?MAX_PMAP_DEPTH ->
+            par_solve_one(Ms);
+        _ ->
+            solve_one(Ms)
+    end.
+
+par_solve_one(Ms) ->
+    Result = pmap(fun do_solve_one/1, Ms),
+    case [R || R <- Result, R =/= no_solution] of
+        [] ->
+            exit(no_solution);
+        [H|_] ->
+            H
+    end.
+
+do_solve_one(M) ->
+    case catch solve_refined(M) of
+	{'EXIT',no_solution} ->
+            no_solution;
+	Solution ->
+	    Solution
     end.
 
 solve_one([]) ->
@@ -235,28 +265,45 @@ benchmarks(Puzzles) ->
     [{Name,bm(fun()->solve(M) end)} || {Name,M} <- Puzzles].
 
 benchmarks() ->
-  {ok,Puzzles} = file:consult("problems.txt"),
-  timer:tc(?MODULE,benchmarks,[Puzzles]).
+    ?pmap_controller:start(),
+    {ok,Puzzles} = file:consult("problems.txt"),
+    TCResult = timer:tc(?MODULE,benchmarks,[Puzzles]),
+    ?pmap_controller:stop(),
+    TCResult.
 
 %%%==================== parallel benchmarks ======================
 par_benchmarks() ->
-  {ok, Puzzles} = file:consult("problems.txt"),
-  timer:tc(?MODULE, par_benchmarks, [Puzzles]).
+    ?pmap_controller:start(),
+    {ok, Puzzles} = file:consult("problems.txt"),
+    TCResult = timer:tc(?MODULE, par_benchmarks, [Puzzles]),
+    ?pmap_controller:stop(),
+    TCResult.
 
 par_benchmarks(Puzzles) ->
     SolveF = fun({Name, M}) -> {Name, bm(fun() -> solve(M) end)} end,
     pmap(SolveF, Puzzles).
 
 pmap(Fun, List) ->
-    Parent = self(),
-    Pids = [spawn_job(Parent, Fun, Job) || Job <- List],
-    [receive {Pid, Result} -> Result end || Pid <- Pids].
+    case ?pmap_controller:get_depth() of
+        N when N < ?MAX_PMAP_DEPTH ->
+            ?pmap_controller:increase_depth(),
+            Parent = self(),
+            Pids = [spawn_job(Parent, Fun, Job) || Job <- List],
+            Results = [receive {Pid, Result} -> Result end || Pid <- Pids],
+            ?pmap_controller:decrease_depth(),
+            Results;
+        _ ->
+            lists:map(Fun, List)
+    end.
 
-spawn_job(Parent, Fun, {Name, _Arg}=Job) ->
+spawn_job(Parent, Fun, {Name, _Arg}=Job) when is_atom(Name) ->
     spawn(fun() -> %% make name visible in percept result
                    UniqueName = unique_name(Name),
                    register(UniqueName, self()),
                    Result = Fun(Job),
+                   Parent ! {self(), Result} end);
+spawn_job(Parent, Fun, Job) ->
+    spawn(fun() -> Result = Fun(Job),
                    Parent ! {self(), Result} end).
 
 %% TODO, handle repeat names
@@ -273,4 +320,3 @@ valid_row(Row) ->
 
 valid_solution(M) ->
     valid_rows(M) andalso valid_rows(transpose(M)) andalso valid_rows(blocks(M)).
-
