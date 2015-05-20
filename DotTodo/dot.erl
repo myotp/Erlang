@@ -8,7 +8,8 @@ run() ->
 run(EventsFileName) ->
     Events = read_events_file(EventsFileName),
     write_to_dot_file(count(Events), EventsFileName),
-    generate_png_file(EventsFileName).
+    generate_png_file(EventsFileName),
+    ok.
 
 %% Filename => [{StartState, EndState, Event}]
 read_events_file(FileName) ->

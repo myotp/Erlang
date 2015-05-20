@@ -199,6 +199,8 @@ cp sample/sample_events .
 erl
 c(dot).
 dot:run("sample_events").
+q().
 open sample_events.png
+rm sample_events* *~
 
 #+END_SRC
