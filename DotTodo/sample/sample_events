@@ -1,0 +1,4 @@
+A, B, reload
+B, A, logout
+A, B, check
+A, B, reload

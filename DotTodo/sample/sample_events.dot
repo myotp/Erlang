@@ -1,0 +1,6 @@
+digraph sample_events
+{
+  A -> B  [label="reload:2"];
+  A -> B  [label="check:1"];
+  B -> A  [label="logout:1"];
+}

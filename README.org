@@ -184,3 +184,21 @@ percept:analyze("sudoku_run.dat").
 ## Start web server
 percept:start_webserver(8080).
 #+END_SRC
+* dot graph for todo-app
+** dot command
+#+BEGIN_SRC sh
+dot -Tpng sample_events.dot -o sample.png
+#+END_SRC
+
+** Report for number of transitions
+ModelJUnit -> events.log (sample_events) -> dot file (sample_events.dot) -> PNG
+#+BEGIN_SRC sh
+## Sample Events in sample_events
+cd ~/Erlang/DotTodo
+cp sample/sample_events .
+erl
+c(dot).
+dot:run("sample_events").
+open sample_events.png
+
+#+END_SRC
