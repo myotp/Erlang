@@ -31,17 +31,23 @@ count([H|T], Result, N)   -> count(T, [{H, N+1}|Result], 0).
 write_to_dot_file(EventsCount, EventsFileName) ->
     DotFileName = dot_file_name(EventsFileName),
     {ok, File} = file:open(DotFileName, [write]),
-    file:write(File, "digraph " ++ EventsFileName ++ "\n{\n"),
+    file:write(File, "digraph " ++ digraph_name(EventsFileName) ++ "\n{\n"),
     lists:foreach(fun(Count) -> write_transition(File, Count) end, EventsCount),
     file:write(File, "}"),
     file:close(File).
 
+%% no dot in digraph name
+digraph_name(FileName) ->
+    re:replace(FileName, "\\.", "_", [{return, list}, global]).
+
 write_transition(File, {[StartState, EndState, Event], Count}) ->
-    S = "  " ++ StartState ++ " -> " ++ EndState ++ "  [label=\""
-        ++ Event ++ ":" ++ integer_to_list(Count) ++ "\"];\n",
+    Label = Event ++ "[" ++ integer_to_list(Count) ++ "]",
+    S = "  " ++ StartState ++ " -> " ++ EndState
+        ++ "  [label=\"" ++ Label ++ "\"];\n",
     file:write(File, S).
 
 %% Generate png file
+%% FIXME, handle failuers :)
 generate_png_file(EventsFileName) ->
     Command = "dot -Tpng " ++ dot_file_name(EventsFileName) ++ " -o "
         ++ png_file_name(EventsFileName),
