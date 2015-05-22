@@ -204,3 +204,13 @@ open sample_events.png
 rm sample_events* *~
 
 #+END_SRC
+
+* MapReduce
+** counting words example
+#+BEGIN_SRC sh
+cd ~/Erlang/MapReduce
+erl
+c(map_reduce).
+c(counting_words).
+counting_words:run_demo().
+#+END_SRC
