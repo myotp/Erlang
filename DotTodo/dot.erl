@@ -32,7 +32,8 @@ write_to_dot_file(EventsCount, EventsFileName) ->
     DotFileName = dot_file_name(EventsFileName),
     {ok, File} = file:open(DotFileName, [write]),
     file:write(File, "digraph " ++ digraph_name(EventsFileName) ++ "\n{\n"),
-    lists:foreach(fun(Count) -> write_transition(File, Count) end, EventsCount),
+    %%write_transitions(File, EventsCount),
+    write_transitions_maybe_invisible_nodes(File, EventsCount),
     file:write(File, "}"),
     file:close(File).
 
@@ -40,11 +41,40 @@ write_to_dot_file(EventsCount, EventsFileName) ->
 digraph_name(FileName) ->
     re:replace(FileName, "\\.", "_", [{return, list}, global]).
 
+%% write transitions normally
+write_transitions(File, EventsCount) ->
+    lists:foreach(fun(Count) -> write_transition(File, Count) end, EventsCount).
 write_transition(File, {[StartState, EndState, Event], Count}) ->
-    Label = Event ++ "[" ++ integer_to_list(Count) ++ "]",
     S = "  " ++ StartState ++ " -> " ++ EndState
-        ++ "  [label=\"" ++ Label ++ "\"];\n",
+        ++ "  [label=\"" ++ edge_label(Event, Count) ++ "\"];\n",
     file:write(File, S).
+
+edge_label(Event, Count) ->
+    Event ++ "[" ++ integer_to_list(Count) ++ "]".
+
+%% write transitions with invisible nodes
+write_transitions_maybe_invisible_nodes(File, EventsCount) ->
+    do_write2(File, EventsCount, []).
+
+do_write2(File, [{[State, State, Event], Count}|Rest], SameStates) ->
+    N = case proplists:get_value(State, SameStates) of
+            undefined -> 1;
+            Other -> Other
+        end,
+    TmpStateName = State ++ integer_to_list(N),
+    S1 = "  " ++ TmpStateName ++ " [fixedsize=true height=0 style=invis];\n",
+    S2 = "  " ++ State ++ " -> " ++ TmpStateName ++ " [dir=none label=\""
+        ++ edge_label(Event, Count) ++ "\"]; "
+        ++ TmpStateName ++ " -> " ++ State ++ ";\n",
+    file:write(File, S1),
+    file:write(File, S2),
+    NewAcc = [{State, N+1}|proplists:delete(State, SameStates)],
+    do_write2(File, Rest, NewAcc);
+do_write2(File, [DiffStatsTransition|Rest], Acc) ->
+    write_transition(File, DiffStatsTransition),
+    do_write2(File, Rest, Acc);
+do_write2(_File, [], _) ->
+    ok.
 
 %% Generate png file
 %% FIXME, handle failuers :)
