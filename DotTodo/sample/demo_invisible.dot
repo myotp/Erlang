@@ -1,0 +1,14 @@
+digraph demo_invisible
+{
+   A -> A [labeldistance="5" label="123   "];
+   A -> A [labeldistance="5" label="456   "];
+   A -> A [labeldistance="5" label="789   "];
+
+   B2 [fixedsize=true height=0 style=invis];
+   B3 [fixedsize=true height=0 style=invis];
+   B4 [fixedsize=true height=0 style=invis];
+
+   B -> B2 [dir=none label="123"]; B2 -> B;
+   B -> B3 [dir=none label="456"]; B3 -> B;
+   B -> B4 [dir=none label="789"]; B4 -> B;
+}
