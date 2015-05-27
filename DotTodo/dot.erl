@@ -47,7 +47,9 @@ write_transitions(File, EventsCount) ->
 write_transition(File, {[StartState, EndState, Event], Count}) ->
     S = "  " ++ StartState ++ " -> " ++ EndState
         ++ "  [label=\"" ++ edge_label(Event, Count) ++ "\"];\n",
-    file:write(File, S).
+    file:write(File, S);
+write_transition(_, Other) ->
+    io:format("HELP!!!! ~p~n", [Other]).
 
 edge_label(Event, Count) ->
     Event ++ "[" ++ integer_to_list(Count) ++ "]".
