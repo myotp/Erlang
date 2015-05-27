@@ -202,8 +202,9 @@ dot:run("sample_events").
 q().
 open sample_events.png
 rm sample_events* *~
-
 #+END_SRC
+
+dot -Tpng events.log.dot -o 123.png
 
 * MapReduce
 ** counting words example
