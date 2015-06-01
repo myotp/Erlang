@@ -215,3 +215,42 @@ c(map_reduce).
 c(counting_words).
 counting_words:run_demo().
 #+END_SRC
+** Web Crawler
+*** Local Test Web Pages
+#+BEGIN_SRC sh
+cd ~/Erlang/MapReduce/web
+sudo python -m SimpleHTTPServer 80
+#+END_SRC
+
+*** web crawler
+#+BEGIN_SRC sh
+cd ~/Erlang/MapReduce/lab
+erl
+erlc *.erl
+c(map_reduce).
+c(web_crawler).
+inets:start().
+httpc:request("http://www.google.com").
+f(URL), URL = "http://localhost".
+httpc:request(URL).
+web_crawler:crawl("http://localhost", 1).
+web_crawler:crawl("http://localhost", 2).
+f(Pages), Pages = web_crawler:crawl("http://localhost", 3).
+f(Pages), Pages = web_crawler:crawl("http://localhost", 4).
+[Url || {Url, Body} <- Pages].
+web_crawler:relative_to_absolute("http://localhost", "\"foo.html").
+f(Html), Html = web_crawler:fetch_url("http://localhost").
+web_crawler:find_urls("http://localhost", Html).
+f(Pages), Pages = web_crawler:crawl("http://www.chalmers.se", 3).
+c(url_filters).
+c(web_crawler).
+spawn(fun() -> web_crawler:crawl("http://www.chalmers.se", 3) end).
+
+#+END_SRC
+* QuickCheck
+#+BEGIN_SRC sh
+cd ~/Erlang/QuickCheck
+erl -pa eqcmini/eqc-1.0.1/ebin
+c(demo).
+eqc:quickcheck(demo:prop_sum()).
+#+END_SRC
