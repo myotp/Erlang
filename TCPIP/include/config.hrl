@@ -1,0 +1,6 @@
+-define(NIC, "en0").
+-define(IP_ADDR, "192.168.1.222"). %% will response to this virtual IP address
+-define(P_ADDR, 16#7CD1C3F4E7C1).  %% not important at this moment
+-define(WSIZE,64).
+-define(POINTER_SIZE,64).
+-define(INTSIZE,64).
