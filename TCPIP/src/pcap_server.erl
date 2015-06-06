@@ -27,6 +27,13 @@
 -define(PROMISC, 1).
 -define(TIMEOUT, 100).
 
+-ifdef(DEBUG_LIBPCAP).
+-define(DEBUG_LIBPCAP_PACKET(Packet), debug_libpcap_packet(Packet)).
+-else.
+-compile([{nowarn_unused_function, [{debug_libpcap_packet, 1}]}]).
+-define(DEBUG_LIBPCAP_PACKET(Packet), ok).
+-endif.
+
 %%===== API to send data to libpcap =========
 send(Data) ->
     gen_server:cast(?SERVER, {send, Data}).
@@ -72,7 +79,8 @@ handle_cast(_Msg, State) ->
 %% libpcap will send packets as Erlang messages
 handle_info({Port, {data, Packet}}, #state{ port = Port
                                           , pcap = _Pcap} = State) ->
-    io:format("packet: ~p~n", [Packet]),
+    ?DEBUG_LIBPCAP_PACKET(Packet),
+    handle_packet(Packet),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
@@ -82,6 +90,10 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+%% only handle ethernet packet
+handle_packet(Packet) ->
+    eth_server:recv(Packet).
 
 %%==== libpcap driver functions =====
 pcap_open_live(Port, Iface, SnapLen, Promisc, TimeoutMs) ->
@@ -111,3 +123,6 @@ pcap_loop(Port, Pcap) ->
 
 pcap_inject(Port, Pcap, Data) ->
     Port ! {self(), {command, <<?INJECT:8/integer, Pcap:?WSIZE/native-integer, (size(Data)):32/native-integer, Data/binary>>}}.
+
+debug_libpcap_packet(Packet) ->
+    io:format("pcaket: ~p~n", [Packet]).

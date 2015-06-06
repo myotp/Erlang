@@ -279,15 +279,21 @@ simply print out each packet
 #+BEGIN_SRC sh
 cd ~/Erlang/TCPIP/
 gcc -o priv/sniff c_src/sniff.c -lpcap -lpthread
-erlc -Iinclude -o ebin src/*.erl
+erlc -DDEBUG_LIBPCAP -Iinclude -o ebin src/*.erl
 erl -pa ebin
 pcap_server:start("en0").
-demo_libpcap:start().
 #+END_SRC
 
 ** demo ethernet
 simply print out each ethernet packet
+#+BEGIN_SRC sh
+cd ~/Erlang/TCPIP/
+gcc -o priv/sniff c_src/sniff.c -lpcap -lpthread
+erlc -Iinclude -o ebin src/*.erl
+erl -pa ebin
+pcap_server:start("en0").
 
+#+END_SRC
 * OTP
 ** Simple gen_server
 #+BEGIN_SRC sh
