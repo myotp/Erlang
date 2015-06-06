@@ -274,7 +274,7 @@ sudo make install
 sudo chown jia.wang /dev/bpf*
 #+END_SRC
 
-** demo libpcap
+** debug libpcap
 simply print out each packet
 #+BEGIN_SRC sh
 cd ~/Erlang/TCPIP/
@@ -284,15 +284,37 @@ erl -pa ebin
 pcap_server:start("en0").
 #+END_SRC
 
-** demo ethernet
+** debug Ethernet
 simply print out each ethernet packet
 #+BEGIN_SRC sh
 cd ~/Erlang/TCPIP/
 gcc -o priv/sniff c_src/sniff.c -lpcap -lpthread
-erlc -Iinclude -o ebin src/*.erl
+erlc -DDEBUG_ETHERNET -Iinclude -o ebin src/*.erl
 erl -pa ebin
 pcap_server:start("en0").
+eth_server:start_link([]).
+#+END_SRC
 
+** debug ARP
+check arp cache
+#+BEGIN_SRC sh
+arp -a
+#+END_SRC
+run Erlang code
+To find Mac address for a given IP address, we start request in a middle man
+process, it could be terminated by any time ARP receives a known IP/Mac pair.
+#+BEGIN_SRC sh
+cd ~/Erlang/TCPIP/
+gcc -o priv/sniff c_src/sniff.c -lpcap -lpthread
+erlc -DDEBUG_ARP -Iinclude -o ebin src/*.erl
+erl -pa ebin
+MyVirtualIpAddress = addr_util:ip_list_to_integer("192.168.1.188").
+pcap_server:start("en0").
+eth_server:start_link([]).
+arp_server:start_link([{ip_address, MyVirtualIpAddress}]).
+
+simple_cache:get(arp_cache, "192.168.1.1").
+arp_server:find_mac_address_by_ip("192.168.1.1").
 #+END_SRC
 * OTP
 ** Simple gen_server

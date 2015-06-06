@@ -62,6 +62,7 @@ init(Opts) ->
     pcap_loop(Port, Pcap),
     {ok, #state{ network_interface = NetworkInterface
                , port = Port
+               , pcap = Pcap
                }}.
 
 handle_call(_Call, _From, State) ->

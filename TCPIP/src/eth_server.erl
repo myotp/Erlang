@@ -63,7 +63,8 @@ handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
 
-handle_cast({send, To, Protocol, Packet}, #state{mac_address = Addr} = State) ->
+handle_cast({send, To, Protocol, Packet},
+            #state{mac_address = Addr} = State) ->
     send_packet(Protocol, Packet, To, Addr),
     {noreply, State};
 handle_cast({recv, Packet}, #state{mac_address = _Addr} = State) ->
