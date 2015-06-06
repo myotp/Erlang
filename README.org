@@ -254,3 +254,48 @@ erl -pa eqcmini/eqc-1.0.1/ebin
 c(demo).
 eqc:quickcheck(demo:prop_sum()).
 #+END_SRC
+* TCP/IP
+** Flow
+libpcap -> pcap_server -> arp_server
+                       -> ip_server
+** libpcap
+#+BEGIN_SRC sh
+## install library
+mkdir -p /tmp/23j238
+cd /tmp/23j238
+wget http://www.tcpdump.org/release/libpcap-1.7.3.tar.gz
+tar xvfz libpcap-1.7.3.tar.gz
+cd libpcap-1.7.3
+./configure
+make
+sudo make install
+
+## give permisstion to /dev/bpf*
+sudo chown jia.wang /dev/bpf*
+#+END_SRC
+
+** demo libpcap
+simply print out each packet
+#+BEGIN_SRC sh
+cd ~/Erlang/TCPIP/
+gcc -o priv/sniff c_src/sniff.c -lpcap -lpthread
+erlc -Iinclude -o ebin src/*.erl
+erl -pa ebin
+pcap_server:start("en0").
+demo_libpcap:start().
+#+END_SRC
+
+** demo ethernet
+simply print out each ethernet packet
+
+* OTP
+** Simple gen_server
+#+BEGIN_SRC sh
+cd ~/Erlang/Demo
+erl
+c(plus_server).
+plus_server:start(88).
+plus_server:plus(1, 2).
+plus_server:plus_cast(1, 2).
+plus_server:plus_info(1, 2).
+#+END_SRC
