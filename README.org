@@ -327,3 +327,23 @@ plus_server:plus(1, 2).
 plus_server:plus_cast(1, 2).
 plus_server:plus_info(1, 2).
 #+END_SRC
+
+** Simple Application
+#+BEGIN_SRC sh
+cd ~/Erlang/SimpleApp
+erlc -o ebin src/*.erl
+erl -pa ebin
+application:start(my_plus).
+plus_server:plus(3, 5).
+plus_server:plus_cast(3, 5).
+#+END_SRC
+
+* Edoc
+#+BEGIN_SRC sh
+cd ~/Erlang/SimpleApp
+erlc -o ebin src/*.erl
+erl -pa ebin
+edoc:application(my_plus, ".", []).
+#+END_SRC
+* Monitor Tool - Appmon
+appmon:start().
