@@ -347,3 +347,38 @@ edoc:application(my_plus, ".", []).
 #+END_SRC
 * Monitor Tool - Appmon
 appmon:start().
+
+* PostgreSQL client
+#+begin_src sh
+## build PostgreSQL Erlang Client
+cd ~/Erlang/PostgreSQL
+git clone https://github.com/wg/epgsql.git
+cd epgsql
+make
+cd ..
+#+end_src
+
+verify library
+
+#+begin_src sh
+erl -pa epgsql/ebin
+%% Connect to a non-exisintg DB
+pgsql:connect("127.0.0.1", "wangjia", "", [{database, "non_existing_db"}]).
+
+%% Connect to an existing DB
+{ok, Conn} = pgsql:connect("192.168.88.101", "wangjia", "", [{database, "my_db"}]).
+q().
+
+cd ~/Erlang/PostgreSQL
+erl -pa epgsql/ebin
+c(demo_client).
+demo_client:default_connection().
+f(), C = v(-1), pgsql:close(C).
+demo_client:demo_other_host_connection().
+f(), C = v(-1), pgsql:close(C).
+
+%% Demo how to use Erlang-PostgreSQL client interact with PostgreSQL
+demo_client:demo_simple_connection().
+demo_client:demo_get_table_spec().
+q().
+#+end_src
