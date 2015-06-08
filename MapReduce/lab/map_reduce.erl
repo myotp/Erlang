@@ -13,6 +13,7 @@
 %% values, and generates in turn a list of key-value pairs. These are
 %% the result.
 map_reduce_seq(Map,Reduce,Input) ->
+    io:format("MapReduce Input: ~p~n", [Input]),
     Mapped = [{K2, V2} || {K, V} <- Input,
                           {K2, V2} <- Map(K, V)],
     reduce_seq(Reduce,Mapped).

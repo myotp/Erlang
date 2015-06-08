@@ -4,10 +4,16 @@
 -module(web_crawler).
 -compile(export_all).
 
+-define(DETS_TABLE, mycrawler).
+
 %% Crawl from a URL, following links to depth D.
 %% Before calling this function, the inets service must
 %% be started using inets:start().
 crawl(Url, D) ->
+    inets:start(),
+    {ok, ?DETS_TABLE} = dets:open_file(?DETS_TABLE, [{file, "web.dat"},
+                                                     {keypos, 1}]),
+    io:format("open table done~n"),
     Pages = follow(D, [{Url,undefined}]),
     [{U, Body} || {U,Body} <- Pages,
                   Body /= undefined].
@@ -15,7 +21,8 @@ crawl(Url, D) ->
 follow(0, KVs) ->
     KVs;
 follow(D, KVs) ->
-    follow(D-1, map_reduce:map_reduce_par(fun map/2, 20, fun reduce/2, 1, KVs)).
+%%    follow(D-1, map_reduce:map_reduce_par(fun map/2, 20, fun reduce/2, 1, KVs)).
+    follow(D-1, map_reduce:map_reduce_seq(fun map/2, fun reduce/2, KVs)).
 
 map(Url,undefined) ->
     Body = fetch_url(Url),
@@ -33,13 +40,44 @@ reduce(Url, Bodies) ->
     end.
 
 fetch_url(Url) ->
-      case httpc:request(Url) of
-          {ok, {_, _Headers, Body}} ->
-              Body;
-          _ ->
-              ""
-      end.
+    case dets:lookup(?DETS_TABLE, Url) of
+        [] ->
+            Body = do_fetch_url(Url),
+            dets:insert(?DETS_TABLE, {Url, Body}),
+            Body;
+        [{Url, Body}] ->
+            io:format("[DETS] ~p~n", [Url]),
+            Body
+    end.
 
+do_fetch_url(Url) ->
+    case skip_url(Url) of
+        true ->
+            io:format("[SKIP] ~p~n", [Url]),
+            "";
+        false ->
+
+            case httpc:request(get, {Url, []}, [{timeout, 1000}], []) of
+                {ok, {{_, 200, _}, _Headers, Body}} ->
+                    io:format("[OK] ~p~n", [Url]),
+                    Body;
+                {ok, {{_, Error, _}, _Headers, _Body}} ->
+                    io:format("[~p] ~p~n", [Error, Url]),
+                    "";
+                _ ->
+                    ""
+            end
+    end.
+
+skip_url(Url) ->
+    skip_non_text_files(Url).
+
+skip_non_text_files(Url) ->
+    lists:any(fun(Pattern) -> end_with(Url, Pattern) end,
+              url_filters:skip_file_types()).
+
+end_with(S, Pattern) ->
+    string:len(S) - string:len(Pattern) - string:rstr(S, Pattern) < 0.
 
 %% Find all the urls in an Html page with a given Url.
 find_urls(Url,Html) ->

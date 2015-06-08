@@ -8,19 +8,21 @@
 %% Before calling this function, the inets service must
 %% be started using inets:start().
 crawl(Url, D) ->
-    Pages = follow(D, [{Url,undefined}]),
-    [{U, Body} || {U,Body} <- Pages,
-                  Body /= undefined].
+    Pages = follow(D, [{Url, undefined}]),
+    [{U, Body} || {U, Body} <- Pages, Body /= undefined].
 
 follow(0, KVs) ->
     KVs;
 follow(D, KVs) ->
-    follow(D-1, map_reduce:map_reduce_par(fun map/2, 20, fun reduce/2, 1, KVs)).
+    KVs2 = map_reduce:map_reduce_seq(fun map/2, fun reduce/2, KVs),
+    %%KVs2 = map_reduce:map_reduce_par(fun map/2, 20, fun reduce/2, 1, KVs),
+    follow(D - 1, KVs2).
 
-map(Url,undefined) ->
+map(Url, undefined) ->
     Body = fetch_url(Url),
-    [{Url,Body}] ++ [{U, undefined} || U <- find_urls(Url, Body)];
-
+    Urls = find_urls(Url, Body),
+    io:format("URLs for ~s: ~n~p~n", [Url, Urls]),
+    [{Url, Body}] ++ [{U, undefined} || U <- Urls];
 map(Url, Body) ->
     [{Url, Body}].
 
@@ -56,10 +58,35 @@ find_urls(Url,Html) ->
     %% turned into complete URLs.
     Relative = case re:run(Lower, "href *= *\"(?!http:).*?(?=\")", [global]) of
                    {match, RLocs} ->
+                       io:format("====== Relatives: ~p~n", [RLocs]),
                        [lists:sublist(Html, Pos+1, Len)
                         || [{Pos, Len}] <- RLocs];
                    _ ->
                        []
                end,
-    Absolute ++ [Url ++ "/" ++ lists:dropwhile(fun(Char) -> Char == $/ end,
-                                               tl(lists:dropwhile(fun(Char) -> Char /= $" end, R))) || R <- Relative].
+    Absolute ++ [relative_to_absolute(Url, R) || R <- Relative].
+
+relative_to_absolute(Url, [$/|_Relative] = SubUrl) ->
+    root_folder(Url) ++ SubUrl;
+relative_to_absolute(Url, Relative) ->
+    Abs = folder(Url) ++ lists:dropwhile(fun(Char) -> Char == $/ end,
+                                         tl(lists:dropwhile(fun(Char) -> Char /= $" end, Relative))),
+    io:format("Relative: ~s and URL: ~p~n", [Relative, Url]),
+    io:format("Absolute: ~s~n", [Abs]),
+    Abs.
+
+folder("http://" ++ Url) ->
+    case string:rchr(Url, $/) of
+        0 ->
+            "http://" ++ Url ++ "/";
+        N when is_integer(N) andalso N > 1 ->
+            "http://" ++ string:sub_string(Url, 1, N)
+    end.
+
+root_folder("http://" ++ Url) ->
+    case string:chr(Url, $/) of
+        0 ->
+            "http://" ++ Url;
+        N when is_integer(N) andalso N > 1 ->
+            "http://" ++ string:sub_string(Url, 1, N-1)
+    end.
