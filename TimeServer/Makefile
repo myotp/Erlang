@@ -8,3 +8,6 @@ clean:
 	@rm -f *.dump
 	@rm -rf tmp
 	@rm -rf *tar.gz
+	@rm -f install*
+	@rm -f *.rel
+	@rm -f */*~
