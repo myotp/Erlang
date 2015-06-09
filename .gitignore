@@ -10,3 +10,5 @@ rel/example_project
 *~
 .DS_Store
 *.dat
+*.boot
+*.script
