@@ -338,6 +338,64 @@ plus_server:plus(3, 5).
 plus_server:plus_cast(3, 5).
 #+END_SRC
 
+* Deploy OTP Application
+** demo_tcp
+#+BEGIN_SRC sh
+cd ~/Erlang/demo
+erl
+c(demo_tcp).
+demo_tcp:start(6789).
+telnet 127.0.0.1  6789
+telnet 127.0.0.1  6789
+ABC
+888
+#+END_SRC
+
+** SimpleTimeServer
+#+BEGIN_SRC sh
+cd ~/Erlang/TimeServer
+erlc -o ebin src/*.erl
+erl -pa ebin
+application:start(time_server).
+curl 127.0.0.1:6789
+application:stop(time_server).
+
+#+END_SRC
+** Package in Mac
+#+BEGIN_SRC sh
+cd ~/Erlang/TimeServer
+erlc -o ebin src/*.erl
+erl -pa ebin
+systools:make_script("time_server_mac_r17", [local]).
+
+## Start Application
+erl -sname timeserver -boot ./time_server_mac_r17
+erl -sname timeserver -boot ./time_server_mac_r17 -detached
+
+## Create a package
+cd ~/Erlang/TimeServer
+rm -f *.tar.gz
+erlc -o ebin src/*.erl
+erl -pa ebin
+systools:make_script("time_server_mac_r17", []).
+systools:make_tar("time_server_mac_r17", [{erts, code:root_dir()}]).
+q().
+ls -lh *.tar*
+
+## Script to install and run package
+mkdir tmp
+cp time_server_mac_r17.tar.gz tmp/
+cd tmp
+tar xvf time_server_mac_r17.tar.gz
+cp ../install_mac_r17 .
+chmod +x install_mac_r17
+chmod +w erts-6.1/bin/erl
+./install_mac_r17
+./erts-6.1/bin/erl -sname timeserver -boot ./releases/2.0.0/start
+./erts-6.1/bin/erl -sname timeserver -boot ./releases/2.0.0/start -detached
+killall beam.smp
+#+END_SRC
+
 * Edoc
 #+BEGIN_SRC sh
 cd ~/Erlang/SimpleApp
