@@ -1,0 +1,8 @@
+%% For Mac OS X, Erlang R17
+{release,
+  {"time_server", "2.0.0"},
+  {erts, "6.1"},
+  [{kernel, "3.0.1"},
+   {stdlib, "2.1"},
+   {sasl, "2.4"},
+   {time_server, "1.0.0"}]}.
