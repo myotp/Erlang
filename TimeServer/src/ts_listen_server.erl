@@ -16,7 +16,7 @@ start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
-    {ok, ListenSocket} = gen_tcp:listen(6789, [{reuseaddr, true}]),
+    {ok, ListenSocket} = gen_tcp:listen(8080, [{reuseaddr, true}]),
     {ok, #state{socket = ListenSocket}, 0}.
 
 handle_call(_Request, _From, State) ->
