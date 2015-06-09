@@ -357,7 +357,7 @@ cd ~/Erlang/TimeServer
 erlc -o ebin src/*.erl
 erl -pa ebin
 application:start(time_server).
-curl 127.0.0.1:6789
+curl 127.0.0.1:8080
 application:stop(time_server).
 
 #+END_SRC
@@ -396,6 +396,48 @@ chmod +w erts-6.1/bin/erl
 killall beam.smp
 #+END_SRC
 
+** Package in Ubuntu 14.04
+generate package in local Ubuntu 14.04 VM and deploy to AWS
+#+BEGIN_SRC sh
+## copy code to Share folder
+rm -rf ~/Share/TimeServer
+cp -r ~/Erlang/TimeServer ~/Share
+
+## package in Ubuntu VM
+cd ~/Super/VMs/PostgreSQL
+vagrant up
+vagrant ssh
+rm -rf TimeServer
+mv ~/Share/TimeServer .
+cd ~/TimeServer
+make clean
+cp priv/time_server_ubuntu_1404_r16b03.rel .
+erlc -o ebin src/*.erl
+erl -pa ebin
+systools:make_script("time_server_ubuntu_1404_r16b03", []).
+systools:make_tar("time_server_ubuntu_1404_r16b03", [{erts, code:root_dir()}]).
+q().
+ls -lh *.tar*
+mv time_server_ubuntu_1404_r16b03.tar.gz ~/Share
+
+## Upload package to AWS
+scp -i ${AWS_FILE} ~/Share/time_server_ubuntu_1404_r16b03.tar.gz ${AWS_HOST}:/home/ubuntu
+
+## fix install On AWS
+ssh -i ${AWS_FILE} ${AWS_HOST}
+rm -rf time_server
+mkdir time_server
+cp time_server_ubuntu_1404_r16b03.tar.gz time_server
+cd time_server
+
+tar xfv time_server_ubuntu_1404_r16b03.tar.gz
+## change ROOTDIR in 'erts-5.10.4/bin/erl' to '/home/ubuntu/time_server'
+emacs erts-5.10.4/bin/erl
+./erts-5.10.4/bin/erl -sname timeserver -boot ./releases/2.0.0/start
+./erts-5.10.4/bin/erl -sname timeserver -boot ./releases/2.0.0/start -detached
+killall beam
+
+#+END_SRC
 * Edoc
 #+BEGIN_SRC sh
 cd ~/Erlang/SimpleApp
