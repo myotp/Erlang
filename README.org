@@ -361,20 +361,32 @@ curl 127.0.0.1:8080
 application:stop(time_server).
 
 #+END_SRC
-** Package in Mac
+** Release in Mac
 #+BEGIN_SRC sh
+## Generate release boot/script file
 cd ~/Erlang/TimeServer
+make clean
 erlc -o ebin src/*.erl
+cp priv/install_mac_r17 .
+cp priv/time_server_mac_r17.rel .
+
 erl -pa ebin
 systools:make_script("time_server_mac_r17", [local]).
+q().
 
-## Start Application
+## Start release with boot/script file
 erl -sname timeserver -boot ./time_server_mac_r17
 erl -sname timeserver -boot ./time_server_mac_r17 -detached
+#+END_SRC
 
+** Package in Mac
+#+BEGIN_SRC sh
 ## Create a package
 cd ~/Erlang/TimeServer
+make clean
 rm -f *.tar.gz
+cp priv/install_mac_r17 .
+cp priv/time_server_mac_r17.rel .
 erlc -o ebin src/*.erl
 erl -pa ebin
 systools:make_script("time_server_mac_r17", []).
