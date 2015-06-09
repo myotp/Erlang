@@ -12,3 +12,5 @@ rel/example_project
 *.dat
 *.boot
 *.script
+*.tar.gz
+tmp
