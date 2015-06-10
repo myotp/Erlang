@@ -457,8 +457,11 @@ erlc -o ebin src/*.erl
 erl -pa ebin
 edoc:application(my_plus, ".", []).
 #+END_SRC
-* Monitor Tool - Appmon
-appmon:start().
+* Monitor Tool - observer (replaced appmon/pman)
+observer:start().
+#+BEGIN_QUOTE
+appmon, pman, toolbar, tv all these gs based applications removed and replaced by observer.
+#+END_QUOTE
 
 * PostgreSQL client
 #+begin_src sh
