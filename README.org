@@ -494,3 +494,20 @@ demo_client:demo_simple_connection().
 demo_client:demo_get_table_spec().
 q().
 #+end_src
+* Install R17 on Mac
+#+BEGIN_SRC sh
+cd ~/Downloads
+mkdir r17
+cd r17
+wget http://www.erlang.org/download/otp_src_17.5.tar.gz
+tar xfv otp_src_17.5.tar.gz
+cd otp_src_17.5
+brew install fop
+brew install ncurses
+CFLAGS=-O0 ./configure --prefix=${HOME}/R17B05 \
+                       --enable-darwin-64bit \
+                       --with-ssl=/usr/local/Cellar/openssl/1.0.1i
+make ; say "finished"
+make install
+
+#+END_SRC
