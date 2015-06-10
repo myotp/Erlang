@@ -514,3 +514,22 @@ make ; say "finished"
 make install
 
 #+END_SRC
+* SimpleCache
+** version 0.1.0
+#+BEGIN_SRC sh
+cd ~/Erlang/SimpleCache
+erlc -o ebin src/*.erl
+erl -pa ebin
+application:start(simple_cache).
+observer:start().
+self().
+simple_cache:insert("name", "wang").
+simple_cache:insert("age", 100).
+simple_cache:insert("city", "Stockholm").
+simple_cache:lookup("name").
+simple_cache:lookup("no this key").
+simple_cache:delete("name").
+application:stop(simple_cache).
+observer:stop().
+init:stop().
+#+END_SRC
