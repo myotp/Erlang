@@ -351,7 +351,7 @@ ABC
 888
 #+END_SRC
 
-** SimpleTimeServer
+** TimeServer
 #+BEGIN_SRC sh
 cd ~/Erlang/TimeServer
 erlc -o ebin src/*.erl
@@ -359,8 +359,58 @@ erl -pa ebin
 application:start(time_server).
 curl 127.0.0.1:8080
 application:stop(time_server).
-
 #+END_SRC
+
+** run TimeServer simply with main
+*** Start
+#+BEGIN_SRC sh
+cd ~/Erlang/TimeServer
+erlc -o ebin src/*.erl
+erl -pa ebin -s time_server
+erl -pa ebin -s time_server -detached -sname timeserver@localhost
+#+END_SRC
+
+*** Stop
+#+BEGIN_SRC sh
+erl -sname control@localhost
+%% Ctrl+G
+j
+h
+r timeserver@localhost
+j
+c
+application:stop(time_server).
+init:stop().
+haha.
+%% Ctrl+G
+c 1
+init:stop().
+#+END_SRC
+
+** simple tar to aws
+To demo a simple way to 'deploy' app to aws, no release, just do:
+    - create a tar file
+    - upload to AWS
+    - login to EC2
+    - untar
+    - make with local Erlang
+    - start with a daemon mode
+#+BEGIN_SRC sh
+cd ~/Erlang/TimeServer
+make clean
+cd ..
+tar -cvf ~/Documents/time_server.tar TimeServer
+
+scp -i ${AWS_FILE} ~/Documents/time_server.tar ${AWS_HOST}:/home/ubuntu
+ssh -i ${AWS_FILE} ${AWS_HOST}
+tar -xvf time_server.tar
+cd TimeServer
+make
+erl -pa ebin -s time_server -detached -sname timeserver@localhost
+
+## Same stop command as before
+#+END_SRC
+
 ** Release in Mac
 #+BEGIN_SRC sh
 ## Generate release boot/script file
