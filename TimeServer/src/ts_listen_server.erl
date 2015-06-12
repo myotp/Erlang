@@ -8,6 +8,7 @@
          terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
+-define(TIME_SERVER_PORT, 8080).
 
 -record(state, { socket
                }).
@@ -16,7 +17,8 @@ start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
-    {ok, ListenSocket} = gen_tcp:listen(8080, [{reuseaddr, true}]),
+    {ok, ListenSocket} = gen_tcp:listen(?TIME_SERVER_PORT,
+                                        [{reuseaddr, true}]),
     {ok, #state{socket = ListenSocket}, 0}.
 
 handle_call(_Request, _From, State) ->
