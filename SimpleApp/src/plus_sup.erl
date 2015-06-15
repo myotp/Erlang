@@ -54,4 +54,7 @@ init([]) ->
     PlusServer = {plus_server, {plus_server, start_link, []},
                   Restart, Shutdown, Type, [plus_server]},
 
-    {ok, {SupFlags, [PlusServer]}}.
+    EventManager = {plus_event, {plus_event, start_link, []},
+                    Restart, Shutdown, Type, [plus_event]},
+
+    {ok, {SupFlags, [PlusServer, EventManager]}}.

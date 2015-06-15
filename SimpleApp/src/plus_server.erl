@@ -49,6 +49,7 @@ init(Opts) ->
 
 handle_call({plus, A, B} = Msg, _From, #state{magic_extra = Extra} = State) ->
     io:format("handle call: ~p~n", [Msg]),
+    plus_event:plus_call(A, B),
     Reply = {ok, A + B + Extra},
     {reply, Reply, State}.
 

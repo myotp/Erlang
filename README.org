@@ -331,11 +331,19 @@ plus_server:plus_info(1, 2).
 ** Simple Application
 #+BEGIN_SRC sh
 cd ~/Erlang/SimpleApp
+rm -f ebin/*.beam
 erlc -o ebin src/*.erl
 erl -pa ebin
 application:start(my_plus).
+observer:start().
 plus_server:plus(3, 5).
 plus_server:plus_cast(3, 5).
+
+%% demo gen_event
+plus_event_printer:add_handler().
+plus_server:plus(8, 7).
+plus_event_printer:delete_handler().
+plus_server:plus(88, 77).
 #+END_SRC
 
 * Deploy OTP Application
