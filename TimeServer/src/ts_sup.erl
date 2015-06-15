@@ -21,8 +21,10 @@ init([]) ->
     Restart = permanent,
     Shutdown = 2000,
 
+    EventManager = {ts_event, {ts_event, start_link, []},
+                    Restart, Shutdown, worker, [ts_event]},
     Listener = {ts_listen_server, {ts_listen_server, start_link, []},
                 Restart, Shutdown, worker, [ts_listen_server]},
     HttpSup = {ts_http_sup, {ts_http_sup, start_link, []},
                 Restart, Shutdown, supervisor, [ts_http_sup]},
-    {ok, {SupFlags, [Listener, HttpSup]}}.
+    {ok, {SupFlags, [EventManager, Listener, HttpSup]}}.

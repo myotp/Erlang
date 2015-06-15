@@ -30,8 +30,10 @@ handle_cast(_Msg, State) ->
 
 handle_info(timeout, #state{socket = Socket} = State) ->
     {ok, ConnSocket} = gen_tcp:accept(Socket),
+    {ok, {IP, _}} = inet:peername(ConnSocket),
     {ok, Worker} = ts_http_sup:start_child(),
     gen_tcp:controlling_process(ConnSocket, Worker),
+    ts_event:notify_new_connection(Worker, IP),
     {noreply, State, 0}.
 
 terminate(_Reason, _State) ->

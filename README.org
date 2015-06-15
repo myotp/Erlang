@@ -346,7 +346,7 @@ plus_event_printer:delete_handler().
 plus_server:plus(88, 77).
 #+END_SRC
 
-* Deploy OTP Application
+* TimeServer -- Deploy OTP Application
 ** demo_tcp
 #+BEGIN_SRC sh
 cd ~/Erlang/demo
@@ -369,6 +369,15 @@ curl 127.0.0.1:8080
 application:stop(time_server).
 #+END_SRC
 
+** TimeServer Event Handler
+#+BEGIN_SRC sh
+application:start(time_server).
+ts_event_printer:add_handler().
+ts_event_monitor:add_handler().
+observer:start().
+curl 127.0.0.1:8080
+
+#+END_SRC
 ** run TimeServer simply with main
 *** Start
 #+BEGIN_SRC sh

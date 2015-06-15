@@ -4,10 +4,11 @@
   {modules, [ ts_app
             , ts_sup
             , ts_listen_server
+            , ts_event
             , ts_http_sup
             , ts_http_server
             ]},
-  {registered, [ts_sup, ts_http_sup]},
+  {registered, [ts_sup, ts_http_sup, ts_event]},
   {applications, [kernel, stdlib]},
   {mod, {ts_app, []}}
  ]
