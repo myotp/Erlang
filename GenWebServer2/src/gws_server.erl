@@ -51,8 +51,8 @@ handle_info({http, _Socket, {http_request, _Method, _Path, _Version} = Req},
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, State#state{request_line = Req}};
 
-handle_info({http, _Socket, {http_header, _, Name, _, Value}} = H, State) ->
-    io:format("~p Header: ~p~n", [self(), H]),
+handle_info({http, _Socket, {http_header, _, Name, _, Value}} = _H, State) ->
+    %%io:format("~p Header: ~p~n", [self(), H]),
     %% handle header
     inet:setopts(State#state.socket, [{active, once}]),
     NewState = handle_header(Name, Value, State),
@@ -131,6 +131,8 @@ handle_http_request(#state{ callback = CallBackMod
     State.
 
 dispatch('GET', Request, Headers, _Body, CallBackMod, UserData) ->
-    CallBackMod:get(Request, Headers, UserData).
+    CallBackMod:get(Request, Headers, UserData);
+dispatch('POST', Request, Headers, Body, CallBackMod, UserData) ->
+    CallBackMod:post(Request, Headers, Body, UserData).
 
 

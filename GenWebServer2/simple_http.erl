@@ -4,10 +4,13 @@
 %% callback functions for gen_web_server behaviour
 -export([ init/1
         , get/3
+        , post/4
         ]).
 
 -export([ start/0
         ]).
+
+-compile(export_all).
 
 -define(x(X), begin
                   fun() ->
@@ -17,22 +20,121 @@
                   end()
               end).
 
+-define(WEB_ROOT, "./web").
+-define(TABLE_ID, persons).
+
 pretty_print(M, L, S, V) ->
     io:format("[~12s:~3s] == ~s =====>>> ~n~p~n~n~n",
               [atom_to_list(M), integer_to_list(L), S, V]).
 
 start() ->
+    ets:new(?TABLE_ID, [public, named_table]),
     gws_connection_sup:start_link(?MODULE, {127,0,0,1}, 8080, []).
 
 init(InitArg) ->
     ?x(InitArg),
     {ok, []}.
 
+
+generate_persons_page() ->
+    Persons = all_persons(),
+    generate_persons_page(Persons).
+
+generate_persons_page([]) ->
+    "";
+generate_persons_page([{Name, Age}|Rest]) ->
+    "<p>" ++ Name ++ " : " ++ integer_to_list(Age) ++ "</p>"
+        ++ generate_persons_page(Rest).
+
+get({http_request, 'GET', {abs_path, <<"/">>}, Version}, Headers, UserData) ->
+    get({http_request, 'GET', {abs_path, <<"/index.html">>}, Version},
+        Headers, UserData);
+get({_, _, {abs_path, <<"/all_persons.html">>}, _}, _, _) ->
+    Page = generate_persons_page(),
+    gen_web_server:http_reply(200, Page);
+get({_, _, {abs_path, PathBin}, _}, _Headers, _UserData) ->
+    ?x(PathBin),
+    Filename = binary_to_list(PathBin),
+    ?x(Filename),
+    case is_static_file(Filename) of
+        true ->
+            Path = get_file_path(Filename),
+            ?x(Path),
+            {ok, Bin} = file:read_file(Path),
+            Reply = gen_web_server:http_reply(200, Bin),
+            ?x(Reply),
+            Reply
+    end;
 get(Request, Headers, UserData) ->
     ?x(Request),
     ?x(Headers),
     ?x(UserData),
     simple_html().
 
+get_file_path("/") ->
+    get_file_path("/index.html");
+get_file_path("/" ++ Rest) ->
+    filename:join(?WEB_ROOT, Rest).
+
+is_static_file(Filename) ->
+    case filename:extension(Filename) of
+        ".html" ->
+            true;
+        _ ->
+            false
+    end.
+
+post({_,_,{_, <<"/new_person">>}, _}, Headers, Body, _UserData) ->
+    Args = get_args(Headers, Body),
+    new_person(Args),
+    gen_web_server:http_reply(301, [{"Location", "/Thanks.html"}], <<>>);
+post(Request, Headers, Body, UserData) ->
+    ?x(Request),
+    ?x(Headers),
+    ?x(Body),
+    ?x(UserData),
+    gen_web_server:http_reply(301, [{"Location", "/Thanks.html"}], <<>>).
+
+new_person(Args) ->
+    Name = proplists:get_value("name", Args),
+    Age = list_to_integer(proplists:get_value("age", Args)),
+    ets:insert(?TABLE_ID, {Name, Age}).
+
+get_args(Headers, Body) ->
+    case is_json_body(Headers) of
+        false ->
+            parse_text_request(Body)
+    end.
+
+is_json_body([{'Content-type', <<"application/json">>}|_Rest]) ->
+    true;
+is_json_body([_|T]) ->
+    is_json_body(T);
+is_json_body([]) ->
+    false.
+
+parse_text_request("") ->
+    [];
+parse_text_request(Body) when is_binary(Body) ->
+    parse_text_request(binary_to_list(Body));
+parse_text_request(Body) ->
+    io:format("To parse request: ~p~n", [Body]),
+    parse_key(Body, "").
+
+parse_key([$=|Rest], Key) ->
+    parse_value(Rest, "", Key);
+parse_key([H|T], Key) ->
+    parse_key(T, Key ++ [H]).
+
+parse_value([$&|Rest], Value, Key) ->
+    [{Key, Value} | parse_text_request(Rest)];
+parse_value("", Value, Key) ->
+    [{Key, Value}];
+parse_value([H|T], Value, Key) ->
+    parse_value(T, Value ++ [H], Key).
+
 simple_html() ->
     <<"<html><body><h1>Hello, my web server</h1></body></html>">>.
+
+all_persons() ->
+    ets:tab2list(?TABLE_ID).
