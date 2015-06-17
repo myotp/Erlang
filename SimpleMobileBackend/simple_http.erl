@@ -49,6 +49,8 @@ generate_persons_page([{Name, Age}|Rest]) ->
     "<p>" ++ Name ++ " : " ++ integer_to_list(Age) ++ "</p>"
         ++ generate_persons_page(Rest).
 
+%% This is just a stupid implementation
+%% Everything is hard coded.
 get({_, _, {_, <<"/favicon.ico">>}, _}, _, _UserData) ->
     gen_web_server:http_reply(404);
 get({http_request, 'GET', {abs_path, <<"/">>}, Version}, Headers, UserData) ->
@@ -98,12 +100,50 @@ post({_,_,{_, <<"/new_person">>}, _}, Headers, Body, _UserData) ->
     Args = get_args(Headers, Body),
     new_person(Args),
     gen_web_server:http_reply(301, [{"Location", "/Thanks.html"}], <<>>);
+post({_,_,{_, <<"/upload_picture">>}, _}, Headers, Body, _UserData) ->
+    Body2 = may_combine_multipart(Headers, Body),
+    [HeaderInBody, FileContents] = re:split(Body2, "\r\n\r\n"),
+    Filename = filename:join("./upload", get_upload_file_name(HeaderInBody)),
+    ?x(Filename),
+    filelib:ensure_dir(Filename),
+    file:write_file(Filename, FileContents),
+    gen_web_server:http_reply(200);
+
 post(Request, Headers, Body, UserData) ->
     ?x(Request),
     ?x(Headers),
     ?x(Body),
     ?x(UserData),
     gen_web_server:http_reply(301, [{"Location", "/Thanks.html"}], <<>>).
+
+may_combine_multipart(Headers, Body) ->
+    ContentType = binary_to_list(proplists:get_value('Content-Type', Headers)),
+    ?x(ContentType),
+    case ContentType of
+        "multipart/" ++ Rest ->
+            {match, [Boundary]} = re:run(Rest, "boundary=(.*)",
+                                         [{capture, all_but_first, list}]),
+            ?x(Boundary),
+            ?x(Body),
+            ?x(11111),
+            Blocks = re:split(Body, "\r\n--" ++ Boundary),
+            Bin = erlang:iolist_to_binary(Blocks),
+            [Bin2, _] = re:split(Bin, "--\r\n$"), %% remove last "--\r\n"
+            ?x(Bin2),
+            Bin2;
+        _ ->
+            Body
+    end.
+
+remove_last_n_bytes(N, Bin) ->
+    L = binary_to_list(Bin),
+    [H, _] = lists:split(length(L) - N, L),
+    list_to_binary(H).
+
+get_upload_file_name(S) ->
+    {match, [Filename]} = re:run(S, "filename=\"(.*)\"",
+                                 [ungreedy, {capture, all_but_first, list}]),
+    Filename.
 
 new_person(Args) ->
     Name = proplists:get_value("name", Args),
