@@ -31,8 +31,15 @@ erlc -pa ebin simple_http.erl
 erl -pa ebin -sname dev@localhost
 c(simple_http).
 simple_http:start().
-curl 127.0.0.1:8080
 #+END_SRC
+
+Test with curl
+#+BEGIN_SRC sh
+curl 127.0.0.1:8080
+echo "Erlang" > /tmp/test_put.txt
+curl -T /tmp/test_put.txt http://localhost:8080/foo
+#+END_SRC
+
 * JSON
 ** mochijson
 #+BEGIN_SRC sh

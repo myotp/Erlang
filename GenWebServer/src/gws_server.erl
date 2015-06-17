@@ -110,7 +110,7 @@ handle_header('Content-Length' = Name, Value, State) ->
     State#state{content_remaining = ContentLength,
                 headers = [{Name, Value} | State#state.headers]};
 handle_header(<<"Expect">> = Name, <<"100-continue">> = Value, State) ->
-    io:format("header 100 continue~n"),
+    io:format("expect 100 continue, so send it...~n"),
     %% send 100-continue to make client start upload files
     gen_tcp:send(State#state.socket, gen_web_server:http_reply(100)),
     State#state{headers = [{Name, Value} | State#state.headers]};

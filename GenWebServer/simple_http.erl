@@ -18,7 +18,7 @@
               end).
 
 pretty_print(M, L, S, V) ->
-    io:format("[~12s:~3s] ~-25s = ~p~n",
+    io:format("[~12s:~3s] == ~s =====>>> ~n~p~n~n~n",
               [atom_to_list(M), integer_to_list(L), S, V]).
 
 start() ->
