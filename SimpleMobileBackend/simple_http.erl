@@ -32,7 +32,7 @@ start() ->
     ets:insert(?TABLE_ID, {"Jordan", 28}),
     ets:insert(?TABLE_ID, {"Doooom", 33}),
     ets:insert(?TABLE_ID, {"Kooloo", 34}),
-    gws_connection_sup:start_link(?MODULE, {127,0,0,1}, 8080, []).
+    gws_connection_sup:start_link(?MODULE, {0,0,0,0}, 8080, []).
 
 init(InitArg) ->
     ?x(InitArg),
