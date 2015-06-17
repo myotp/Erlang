@@ -13,6 +13,15 @@ bar
 
 #+END_SRC
 
+* Paralel TCP Server
+#+BEGIN_SRC sh
+cd ~/Erlang/TCPServer
+make
+erl -pa ebin
+application:start(tcp_server).
+application:stop(tcp_server).
+
+#+END_SRC
 * JSON
 ** mochijson
 #+BEGIN_SRC sh
