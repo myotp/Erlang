@@ -1,6 +1,6 @@
-* Simple Echo Server
+* Naive Echo Server
 #+BEGIN_SRC sh
-cd HttpServer
+cd NaiveEchoServer
 erl
 c(simple_echo_server).
 simple_echo_server:start(8000).
