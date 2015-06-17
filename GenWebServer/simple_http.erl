@@ -32,7 +32,7 @@ get(Request, Headers, UserData) ->
     ?x(Request),
     ?x(Headers),
     ?x(UserData),
-    simple_html().
+    gen_web_server:http_reply(200, simple_html()).
 
 simple_html() ->
     <<"<html><body><h1>Hello, my web server</h1></body></html>">>.
