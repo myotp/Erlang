@@ -33,7 +33,7 @@ http_reply(Code, Body) ->
 http_reply(Code, Headers, Body) ->
     ContentBytes = iolist_to_binary(Body),
     Length = byte_size(ContentBytes),
-    [io_lib:format("HTTP/1.1 ~s\r\n~s\r\nContent-Length: ~w\r\n\r\n",
+    [io_lib:format("HTTP/1.1 ~s\r\n~sContent-Length: ~w\r\n\r\n",
                    [response(Code), headers(Headers), Length]),
      ContentBytes].
 
