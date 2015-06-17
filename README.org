@@ -22,6 +22,17 @@ application:start(tcp_server).
 application:stop(tcp_server).
 
 #+END_SRC
+* Gen Web Server
+** Simple HTTP Server
+#+BEGIN_SRC sh
+cd ~/Erlang/GenWebServer
+make
+erlc -pa ebin simple_http.erl
+erl -pa ebin -sname dev@localhost
+c(simple_http).
+simple_http:start().
+curl 127.0.0.1:8080
+#+END_SRC
 * JSON
 ** mochijson
 #+BEGIN_SRC sh
