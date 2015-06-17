@@ -40,9 +40,9 @@ echo "Erlang" > /tmp/test_put.txt
 curl -T /tmp/test_put.txt http://localhost:8080/foo
 #+END_SRC
 
-** Simple HTTP Server 2
+* Simple Mobile Backend
 #+BEGIN_SRC sh
-cd ~/Erlang/GenWebServer2
+cd ~/Erlang/SimpleMobileBackend
 make
 erlc -pa ebin simple_http.erl
 erlc mochijson.erl
