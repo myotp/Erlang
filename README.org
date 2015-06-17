@@ -40,6 +40,45 @@ echo "Erlang" > /tmp/test_put.txt
 curl -T /tmp/test_put.txt http://localhost:8080/foo
 #+END_SRC
 
+** Simple HTTP Server 2
+#+BEGIN_SRC sh
+cd ~/Erlang/GenWebServer2
+make
+erlc -pa ebin simple_http.erl
+erlc mochijson.erl
+erl -pa ebin -sname dev@localhost
+c(simple_http).
+simple_http:start().
+#+END_SRC
+
+Test with curl
+#+BEGIN_SRC sh
+curl 127.0.0.1:8080
+echo "Erlang" > /tmp/test_put.txt
+curl -T /tmp/test_put.txt http://localhost:8080/foo
+
+## get all persons
+curl http://127.0.0.1:8080/all_persons.html
+
+## get all persons by JSON
+curl http://127.0.0.1:8080/all_persons.json
+
+## create a new person by text
+curl -X POST --data "name=jia&age=11" http://127.0.0.1:8080/new_person
+curl -X POST --data "name=jjj&age=22" http://127.0.0.1:8080/new_person
+curl -X POST --data "name=yyy&age=33" http://127.0.0.1:8080/new_person
+
+## Add person with JSON request
+curl -H "Content-Type: application/json" \
+     -X POST -d '{"name":"bob", "age":55}' \
+     http://127.0.0.1:8080/new_person
+
+## Get persons JSON reply
+curl http://127.0.0.1:8080/all_persons.json | jq "."
+curl http://127.0.0.1:8080/all_persons.json | jq ".persons[0].name"
+
+#+END_SRC
+
 * JSON
 ** mochijson
 #+BEGIN_SRC sh

@@ -49,6 +49,10 @@ generate_persons_page([{Name, Age}|Rest]) ->
 get({http_request, 'GET', {abs_path, <<"/">>}, Version}, Headers, UserData) ->
     get({http_request, 'GET', {abs_path, <<"/index.html">>}, Version},
         Headers, UserData);
+get({_, _, {abs_path, <<"/all_persons.json">>}, _}, _, _) ->
+    Json = all_persons_json(),
+    gen_web_server:http_reply(200, [{'Content-Type', "application/json"}], Json);
+
 get({_, _, {abs_path, <<"/all_persons.html">>}, _}, _, _) ->
     Page = generate_persons_page(),
     gen_web_server:http_reply(200, Page);
@@ -97,21 +101,35 @@ post(Request, Headers, Body, UserData) ->
 
 new_person(Args) ->
     Name = proplists:get_value("name", Args),
-    Age = list_to_integer(proplists:get_value("age", Args)),
+    Age = to_integer(proplists:get_value("age", Args)),
     ets:insert(?TABLE_ID, {Name, Age}).
 
+to_integer(List) when is_list(List) ->
+    list_to_integer(List);
+to_integer(Int) when is_integer(Int) ->
+    Int.
+
 get_args(Headers, Body) ->
-    case is_json_body(Headers) of
-        false ->
+    case content_type(Headers) of
+        "json" ->
+            parse_json_request(Body);
+        "text" ->
             parse_text_request(Body)
     end.
 
-is_json_body([{'Content-type', <<"application/json">>}|_Rest]) ->
-    true;
-is_json_body([_|T]) ->
-    is_json_body(T);
-is_json_body([]) ->
-    false.
+content_type(Headers) ->
+    ContentType = proplists:get_value('Content-Type', Headers),
+    ?x(ContentType),
+    case ContentType of
+        <<"application/json">> ->
+            "json";
+        _ ->
+            "text"
+    end.
+
+parse_json_request(Body) ->
+    {struct, KVs} = mochijson:decode(Body),
+    KVs.
 
 parse_text_request("") ->
     [];
@@ -138,3 +156,21 @@ simple_html() ->
 
 all_persons() ->
     ets:tab2list(?TABLE_ID).
+
+all_persons_json() ->
+    lists:flatten(mochijson:encode(all_persons_json(all_persons()))).
+
+all_persons_json(Persons) ->
+    {struct, [{"persons", {array, gen_all_persons_json(Persons)}}]}.
+
+gen_all_persons_json([]) ->
+    [];
+gen_all_persons_json([{Name, Age}|Rest]) ->
+    [{struct, [{"name", Name}, {"age", Age}]}|gen_all_persons_json(Rest)].
+
+sample_persons() ->
+    {struct, [{"persons", {array, [{struct, [{"name", "wang"}, {"age", 111}]},
+                                   {struct, [{"name", "Bob"}, {"age", 222}]}]}}]}.
+
+sample_persons_json() ->
+    lists:flatten(mochijson:encode(sample_persons())).
