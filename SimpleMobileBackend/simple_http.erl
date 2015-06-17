@@ -60,18 +60,17 @@ get({_, _, {abs_path, <<"/all_persons.html">>}, _}, _, _) ->
     Page = generate_persons_page(),
     gen_web_server:http_reply(200, Page);
 get({_, _, {abs_path, PathBin}, _}, _Headers, _UserData) ->
+    %% FIXME, static/dynamic file
     ?x(PathBin),
     Filename = binary_to_list(PathBin),
     ?x(Filename),
-    case is_static_file(Filename) of
-        true ->
-            Path = get_file_path(Filename),
-            ?x(Path),
-            {ok, Bin} = file:read_file(Path),
-            Reply = gen_web_server:http_reply(200, Bin),
-            ?x(Reply),
-            Reply
-    end;
+    ContentType = content_type(Filename),
+    Path = get_file_path(Filename),
+    ?x(Path),
+    {ok, Bin} = file:read_file(Path),
+    Reply = gen_web_server:http_reply(200, [{'Content-Type', ContentType}],Bin),
+    ?x(Reply),
+    Reply;
 get(Request, Headers, UserData) ->
     ?x(Request),
     ?x(Headers),
@@ -83,12 +82,14 @@ get_file_path("/") ->
 get_file_path("/" ++ Rest) ->
     filename:join(?WEB_ROOT, Rest).
 
-is_static_file(Filename) ->
+content_type(Filename) ->
     case filename:extension(Filename) of
         ".html" ->
-            true;
+            "text/html";
+        ".png" ->
+            "image/png";
         _ ->
-            false
+            "text/plain"
     end.
 
 post({_,_,{_, <<"/new_person">>}, _}, Headers, Body, _UserData) ->
@@ -113,14 +114,14 @@ to_integer(Int) when is_integer(Int) ->
     Int.
 
 get_args(Headers, Body) ->
-    case content_type(Headers) of
+    case get_content_type(Headers) of
         "json" ->
             parse_json_request(Body);
         "text" ->
             parse_text_request(Body)
     end.
 
-content_type(Headers) ->
+get_content_type(Headers) ->
     ContentType = proplists:get_value('Content-Type', Headers),
     ?x(ContentType),
     case ContentType of
