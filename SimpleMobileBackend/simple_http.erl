@@ -24,7 +24,7 @@
 -define(TABLE_ID, persons).
 
 pretty_print(M, L, S, V) ->
-    io:format("[~12s:~3s] == ~s =====>>> ~n~p~n~n~n",
+    io:format("[~12s:~3s] ~s = ~p~n",
               [atom_to_list(M), integer_to_list(L), S, V]).
 
 start() ->
@@ -63,7 +63,12 @@ get({_, _, {abs_path, <<"/all_persons.json">>}, _}, _, _) ->
 get({_, _, {abs_path, <<"/all_persons.html">>}, _}, _, _) ->
     Page = generate_persons_page(),
     gen_web_server:http_reply(200, Page);
-get({_, _, {abs_path, PathBin}, _}, _Headers, _UserData) ->
+get({_, _, {abs_path, PathBin0}, _}, _Headers, _UserData) ->
+    %% FIXME, just for fun
+    %% on iOS, the download file is cached
+    %% just want to use different name to cheat cache
+    %% but server will always return the same png file
+    PathBin = maybe_always_same_picture(PathBin0),
     %% FIXME, static/dynamic file
     ?x(PathBin),
     Filename = binary_to_list(PathBin),
@@ -73,13 +78,32 @@ get({_, _, {abs_path, PathBin}, _}, _Headers, _UserData) ->
     ?x(Path),
     {ok, Bin} = file:read_file(Path),
     Reply = gen_web_server:http_reply(200, [{'Content-Type', ContentType}],Bin),
-    ?x(Reply),
+    case ContentType of
+        "image/png" ->
+            io:format("SKIP printing png file~n");
+        _ ->
+            ?x(Reply)
+    end,
     Reply;
 get(Request, Headers, UserData) ->
     ?x(Request),
     ?x(Headers),
     ?x(UserData),
     simple_html().
+
+maybe_always_same_picture(Path) ->
+    ?x(11111),
+    ?x(Path),
+    case re:run(Path, "\\.png") of
+        {match, _} ->
+            io:format("MAGiC, I will always use camera.png for ~p~n", [Path]),
+            Delay = random:uniform(5000),
+            ?x(Delay),
+            timer:sleep(Delay),
+            <<"/camera.png">>;
+        _ ->
+            Path
+    end.
 
 get_file_path("/") ->
     get_file_path("/index.html");
@@ -124,12 +148,12 @@ may_combine_multipart(Headers, Body) ->
             {match, [Boundary]} = re:run(Rest, "boundary=(.*)",
                                          [{capture, all_but_first, list}]),
             ?x(Boundary),
-            ?x(Body),
+            %%?x(Body),
             ?x(11111),
             Blocks = re:split(Body, "\r\n--" ++ Boundary),
             Bin = erlang:iolist_to_binary(Blocks),
             [Bin2, _] = re:split(Bin, "--\r\n$"), %% remove last "--\r\n"
-            ?x(Bin2),
+            %%?x(Bin2),
             Bin2;
         _ ->
             Body
