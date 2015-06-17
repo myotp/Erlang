@@ -49,6 +49,8 @@ generate_persons_page([{Name, Age}|Rest]) ->
     "<p>" ++ Name ++ " : " ++ integer_to_list(Age) ++ "</p>"
         ++ generate_persons_page(Rest).
 
+get({_, _, {_, <<"/favicon.ico">>}, _}, _, _UserData) ->
+    gen_web_server:http_reply(404);
 get({http_request, 'GET', {abs_path, <<"/">>}, Version}, Headers, UserData) ->
     get({http_request, 'GET', {abs_path, <<"/index.html">>}, Version},
         Headers, UserData);
