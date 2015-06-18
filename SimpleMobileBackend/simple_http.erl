@@ -123,7 +123,8 @@ content_type(Filename) ->
 post({_,_,{_, <<"/new_person">>}, _}, Headers, Body, _UserData) ->
     Args = get_args(Headers, Body),
     new_person(Args),
-    gen_web_server:http_reply(301, [{"Location", "/Thanks.html"}], <<>>);
+    %%gen_web_server:http_reply(301, [{"Location", "/Thanks.html"}], <<>>);
+    gen_web_server:http_reply(200);
 post({_,_,{_, <<"/upload_picture">>}, _}, Headers, Body, _UserData) ->
     Body2 = may_combine_multipart(Headers, Body),
     [HeaderInBody, FileContents] = re:split(Body2, "\r\n\r\n"),
