@@ -8,7 +8,7 @@
         , stop/1
         ]).
 
--define(DEFAULT_PORT, 8080).
+-define(DEFAULT_PORT, 8888).
 
 start(StartType, StartArgs) ->
     ?x(StartType),

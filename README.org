@@ -21,6 +21,10 @@ erl -pa ebin
 application:start(tcp_server).
 application:stop(tcp_server).
 
+telnet 127.0.0.1 8888
+foo
+bar
+
 #+END_SRC
 * Gen Web Server
 ** Simple HTTP Server
