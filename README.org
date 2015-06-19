@@ -13,9 +13,9 @@ bar
 
 #+END_SRC
 
-* Paralel TCP Server
+* Paralel TCP Echo Server
 #+BEGIN_SRC sh
-cd ~/Erlang/TCPServer
+cd ~/Erlang/TcpServer
 make
 erl -pa ebin
 application:start(tcp_server).
