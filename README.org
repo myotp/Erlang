@@ -45,6 +45,7 @@ curl -T /tmp/test_put.txt http://localhost:8080/foo
 #+END_SRC
 
 * Simple Mobile Backend
+** Start Server
 #+BEGIN_SRC sh
 cd ~/Erlang/SimpleMobileBackend
 make
@@ -55,7 +56,7 @@ c(simple_http).
 simple_http:start().
 #+END_SRC
 
-Test with curl
+** Test with curl
 #+BEGIN_SRC sh
 curl 127.0.0.1:8080
 echo "Erlang" > /tmp/test_put.txt
@@ -65,7 +66,7 @@ curl -T /tmp/test_put.txt http://localhost:8080/foo
 curl http://127.0.0.1:8080/all_persons.html
 
 ## get all persons by JSON
-curl http://127.0.0.1:8080/all_persons.json
+curl http://127.0.0.1:8080/all_persons.json | jq "."
 
 ## create a new person by text
 curl -X POST --data "name=jia&age=11" http://127.0.0.1:8080/new_person
@@ -80,8 +81,10 @@ curl -H "Content-Type: application/json" \
 ## Get persons JSON reply
 curl http://127.0.0.1:8080/all_persons.json | jq "."
 curl http://127.0.0.1:8080/all_persons.json | jq ".persons[0].name"
-
 #+END_SRC
+
+** iOS Client
+iOS2/DemoNetwork
 
 * JSON
 ** mochijson
