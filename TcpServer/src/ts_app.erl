@@ -18,7 +18,8 @@ start(StartType, StartArgs) ->
                undefined -> ?DEFAULT_PORT
            end,
     ?x(Port),
-    {ok, ListenSocket} = gen_tcp:listen(Port, [{active, true}]),
+    {ok, ListenSocket} = gen_tcp:listen(Port, [{active, true},
+                                              {reuseaddr, true}]),
     case ts_sup:start_link(ListenSocket) of
         {ok, Pid} ->
             ?x(Pid),
